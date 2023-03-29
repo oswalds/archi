@@ -5,26 +5,22 @@
          point="org.eclipse.ui.menus">
       <menuContribution
             allPopups="false"
-            locationURI="menu:tools">
+            locationURI="menu:report_menu?after=report_ext">
          <command
                commandId="com.archimatetool.reports.command.HTML"
                id="com.archimatetool.reports.menuItem.HTML"
                label="%action.label"
                style="push">
          </command>
-      </menuContribution>
-      <!-- <svgHtml> 
-      <menuContribution
-            allPopups="false"
-            locationURI="menu:tools">
          <command
                commandId="com.archimatetool.reports.command.HTMLsvg"
                id="com.archimatetool.reports.menuItem.HTMLsvg"
                label="%command.label.svg"
                style="push">
          </command>
-      </menuContribution>
-          </svgHtml> -->
+      </menuContribution>  
+      <!-- <svgHtml> -->
+      <!--  </svgHtml> -->
       <menuContribution
             allPopups="false"
             locationURI="menu:tools">
@@ -52,14 +48,14 @@
    </extension>
    <extension
          point="org.eclipse.ui.commands">
-      <!-- <svgHtml> 
+      <!-- <svgHtml> -->
       <command
             categoryId="com.archimatetool.editor.category"
             description="%command.label.svg"
             id="com.archimatetool.reports.command.HTMLsvg"
             name="%action.label.svg">
       </command>
-           </svgHtml> -->
+      <!-- </svgHtml> -->
       <command
             categoryId="com.archimatetool.editor.category"
             description="%command.label"
@@ -75,7 +71,7 @@
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
-      <!-- <svgHtml> 
+      <!-- <svgHtml> -->
       <handler
             class="com.archimatetool.reports.html.HTMLReportHandler"
             commandId="com.archimatetool.reports.command.HTMLsvg">
@@ -85,7 +81,7 @@
             </reference>
          </enabledWhen>
       </handler>
-           </svgHtml> -->
+      <!--   </svgHtml> -->
       <handler
             class="com.archimatetool.reports.html.HTMLReportHandler"
             commandId="com.archimatetool.reports.command.HTML">
