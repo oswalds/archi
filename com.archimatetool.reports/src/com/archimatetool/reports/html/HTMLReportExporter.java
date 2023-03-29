@@ -61,6 +61,12 @@ import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.reports.ArchiReportsPlugin;
 
+// SO <svgHtml>
+import com.archimatetool.export.svg.ExtendedSVGExportProvider;
+import com.archimatetool.model.IBounds;
+import java.util.Locale;
+// SO </svgHtml>
+
 
 /**
  * Export model to HTML report
@@ -76,6 +82,11 @@ public class HTMLReportExporter {
     static final String PREFS_LAST_FOLDER = "Reports_LastFolder"; //$NON-NLS-1$
     
     private IArchimateModel fModel;
+
+    // SO <svgHtml>
+    // requires com.archimatetool.export.svg library dependency added to plugin.xml
+    private boolean asSvg = true;
+    // SO </svgHtml>
     
     /**
      * Map of new bounds for each digram for bounds offset
@@ -192,7 +203,27 @@ public class HTMLReportExporter {
     public File createReport(File targetFolder, String indexFileName) throws IOException {
         return createReport(targetFolder, indexFileName, null);
     }
-    
+    // SO <graph> 
+    // make sure quotes (") aren't written to the file when ;format:js is present in .stg
+    protected class JSStringRenderer extends StringRenderer {
+    	public String toString(Object o, String formatString, Locale locale) {
+            if ( formatString==null ) {
+            	return o.toString();
+            } else if ( formatString.equals("js")) {
+            	String jsSafe = o.toString().replaceAll("\\\"+", "'");
+            	return jsSafe;
+            } else if (formatString.equals("js2")) {
+            	String jsSafe = o.toString().replace("\\","\\\\");
+            	return jsSafe;
+            } else if ( formatString.equals("noWS")) {
+            	String wsSafe = o.toString().replaceAll("[^a-zA-Z0-9]", "_");
+            	return wsSafe;
+            } else {
+            	return super.toString(o,formatString,locale);
+            }
+        }
+    }
+    // SO </graph>  
     public File createReport(File targetFolder, String indexFileName, IProgressMonitor monitor) throws IOException {
         progressMonitor = monitor;
         
@@ -222,11 +253,21 @@ public class HTMLReportExporter {
         objectsFolder.mkdirs(); // Make dir
 
         // Instantiate templates files
-        File mainFile = new File(ArchiReportsPlugin.INSTANCE.getTemplatesFolder(), "st/main.stg"); //$NON-NLS-1$
+        // SO <svgHtml>
+        // the files need to be in the templates folder, custom mainSvg.stg and frameSvg.stg (referenced by mainSvg)
+        String stgFile = asSvg ? "st/mainSvg.stg" : "st/main.stg";
+        File mainFile = new File(ArchiReportsPlugin.INSTANCE.getTemplatesFolder(), stgFile); 
+        //File mainFile = new File(ArchiReportsPlugin.INSTANCE.getTemplatesFolder(), "st/main.stg"); //$NON-NLS-1$
+	// SO </svgHtml>
         STGroupFile groupFile = new STGroupFile(mainFile.getAbsolutePath(), '^', '^');
         ST stFrame = groupFile.getInstanceOf("frame"); //$NON-NLS-1$
-        
-        groupFile.registerRenderer(String.class, new StringRenderer());
+        //groupFile.registerRenderer(String.class, new StringRenderer());
+	 groupFile.registerRenderer(Object.class, new JSStringRenderer());
+
+        // SO <graphJS>
+        ST stJS = groupFile.getInstanceOf("js");
+        // SO </graphJS>
+	
         
         // Write model purpose and properties html
         writeElement(new File(elementsFolder, "model.html"), stFrame, fModel); //$NON-NLS-1$
@@ -238,7 +279,7 @@ public class HTMLReportExporter {
         writeGraphicalObjects(objectsFolder, stFrame);
         
         // Write Diagrams and images
-        writeDiagrams(imagesFolder, viewsFolder, stFrame);
+        writeDiagrams(imagesFolder, viewsFolder, stFrame, /*SO<graph>*/ stJS);
         
         setProgressSubTask(Messages.HTMLReportExporter_13);
         
@@ -353,20 +394,54 @@ public class HTMLReportExporter {
     /**
      * Write diagrams
      */
-    private void writeDiagrams(File imagesFolder, File viewsFolder, ST stFrame) throws IOException {
+    private void writeDiagrams(File imagesFolder, File viewsFolder, ST stFrame, /*SO<graph>*/ ST stJS) throws IOException {
         List<IDiagramModel> diagramModels = fModel.getDiagramModels();
         
         if(diagramModels.isEmpty()) {
             return;
         }
         
+
+        // SO <svgHtml>
+        ExtendedSVGExportProvider svgExport =  new ExtendedSVGExportProvider();
+        	svgExport.setDrawTextAsShapes(false);
+
+            if (! asSvg) {
         // Save images
         saveImages(imagesFolder, diagramModels);
-        
+        }
+        // SO </svgHtml>        
         setProgressSubTask(Messages.HTMLReportExporter_11);
 
         // Create html files
         for(IDiagramModel dm : diagramModels) {
+            // SO <svgHtml>
+           	String[] svg = new String[1];
+           	if (asSvg) {
+
+           		try {
+                   	Map<String,String> rootAttributes = new HashMap<String,String>();
+                   	rootAttributes.put("onLoad", "svgControl.init()");
+                   	//rootAttributes.put("width", "");// triggers width in export provider
+                   	//rootAttributes.put("height","");
+                   	svgExport.setElementRootAttributes(rootAttributes);
+                    // Image creation must be done in a UI thread
+                    Display.getDefault().syncExec(() -> {
+                        //geoImage[0] = DiagramUtils.createModelReferencedImage(dm, 1, 10);
+                    	try {
+               			svg[0] = svgExport.getSVGString(dm,true);
+                    	} catch (Exception e) {
+                    		e.printStackTrace();
+                    	}
+                    });
+           			//System.out.println(svg);
+           		} catch (Exception e) {
+           			System.err.println(e);
+           			e.printStackTrace();
+           		}  
+
+   			} else {  
+
             // Add the necessary bounds in order to get correct absolute coordinates for the elements in the generated image
             Rectangle bounds = diagramBoundsMap.get(dm);
             
@@ -374,18 +449,41 @@ public class HTMLReportExporter {
             for(IDiagramModelObject dmo: dm.getChildren() ) {
                 addNewBounds(dmo, bounds.x * -1, bounds.y * -1);
             }
-
+			}
             stFrame.remove("element"); //$NON-NLS-1$
             stFrame.add("element", dm); //$NON-NLS-1$
             
             stFrame.remove("map"); //$NON-NLS-1$
             stFrame.add("map", childBoundsMap); //$NON-NLS-1$
-            
-            File viewFile = new File(viewsFolder, dm.getId() + ".html"); //$NON-NLS-1$
-            try(OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(viewFile), "UTF8")) { //$NON-NLS-1$
-                writer.write(stFrame.render());
+
+            // SO <svgImage>
+            if (asSvg) {
+                stFrame.remove("svg"); //$NON-NLS-1$
+                stFrame.add("svg", svg); //$NON-NLS-1$
+                
             }
-            
+            // SO </svgImage>
+     
+            //File viewFile = new File(viewsFolder, dm.getId() + ".html"); //$NON-NLS-1$
+	        // SO <svgHTML>
+	        String viewRoot = dm.getName().replaceAll("[^a-zA-Z0-9]", "_"); // SO
+            //File viewFile = new File(viewsFolder, dm.getName().replaceAll(" ", "_") + ".html"); //$NON-NLS-1$
+            File vf = new File(viewsFolder, viewRoot + ".html"); //$NON-NLS-1$
+            //try(OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(viewFile), "UTF8")) { //$NON-NLS-1$
+            try(OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(vf), "UTF8")) { //$NON-NLS-1$
+            // SO </svgHTML>
+                  writer.write(stFrame.render());
+            }
+            // SO <graphJS>
+            if (asSvg) {
+            	stJS.remove("element");
+            	stJS.add("element", dm);
+                File jsFile = new File(viewsFolder, viewRoot + ".js"); //$NON-NLS-1$ // SO
+                try(OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF8")) { //$NON-NLS-1$
+                	writer.write(stJS.render());
+                }
+            }
+            // SO </graphJS>           
             checkProgressCancelled();
         }
     }
@@ -534,4 +632,10 @@ public class HTMLReportExporter {
         }
     }
 
+    // SO <svgHtml> 
+    // TODO - get from preferences or from a dialog?
+    public void exportAsSVG(boolean asSvg) {
+    	this.asSvg = asSvg;
+    }
+    // SO </svgHtml>
 }

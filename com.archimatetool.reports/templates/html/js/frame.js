@@ -187,6 +187,7 @@ $(document).ready(function() {
 		// Get reference to slider and image
 		var slider = document.getElementById("zoomRange");
 		let img = document.getElementsByClassName("diagram")[0];
+		if (typeof img === 'undefined') return;
 		let imgNativeWidth = img.width;
 		const step = 10;
 

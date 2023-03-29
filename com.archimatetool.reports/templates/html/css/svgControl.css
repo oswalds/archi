@@ -1,0 +1,46 @@
+.highlight {
+	stroke: #00ea27;
+	stroke-width:2px;
+}
+.highlightSource {
+	stroke: #0052ea;
+	stroke-width:2px;
+}
+.highlightTarget {
+	stroke: #ea3600;
+	stroke-width:2px;
+}
+.svgContextMenu {
+	display: block;
+	font-size:8pt;
+	font-family:arial;
+    position: absolute;
+    background-color: #f7f7ec;
+    border: black;
+    border-style: solid;
+    border-width: thin;
+    visibility: hidden;
+    top: 0px;
+    left: 0px;
+    min-width:80px;
+}
+div.svgContextBtn:hover {
+	background-color: #ffffff;
+	cursor: pointer;
+
+.svgClipDiv {
+    height: 500px;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%,0% 0%);
+}
+
+
+#svgGlyph {
+	width: 150px;
+    position: absolute;
+    top: 50% !important;
+    right: 0;
+    transform: translateY(-50%);
+}
+#diagram {
+	border: 1px solid #ddd;
+}

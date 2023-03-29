@@ -1,0 +1,52 @@
+expandEdges(children) ::= <<
+^children:{c |
+	^if(c.ArchimateElement)^
+	    var props = [];
+	    ^c.ArchimateElement.Properties:{p | props.push({key:"^p.Key^",value:"^p.Value;format="js2"^"\});}^
+	    var cName = "^c.Name;format="js"^";
+	    nodes["^c.ArchimateConcept.Id^"]={name:cName,documentation:`"^c.ArchimateElement.Documentation^"`,properties:props\};
+		^if(c.SourceConnections)^
+			^c.SourceConnections:{r |
+				^if(r.ArchimateConcept)^
+				   var rType = "^r.ArchimateConcept.Class.SimpleName^".replace(/[A-Z]/g, (m,o) => (o > 0 ? "-" : "") + m.toLowerCase())
+				      var rProps = [];
+	                              ^r.ArchimateConcept.Properties:{p | rProps.push({key:"^p.Key^",value:"^p.Value;format="js2"^"\});}^
+				   edges.push({id:"^r.ArchimateConcept.Id^", name:"^r.Name;format="js2"^", 
+						       labelValue:"^r.ArchimateElement.LabelValue;format="js2"^",
+						       properties:rProps,
+				                       type:rType,
+				                       sourceName:"^r.ArchimateConcept.Source.Name;format="js2"^",
+						       sourceType:"^r.ArchimateConcept.Source.Class.SimpleName^",
+				                       targetName:"^r.ArchimateConcept.Target.Name;format="js2"^",
+						       targetType:"^r.ArchimateConcept.Target.Class.SimpleName^",
+				                       ^if(r.ArchimateConcept.Directed)^directed:"^r.ArchimateConcept.Directed^",^endif^
+				                       ^if(r.ArchimateConcept.AccessType)^accessType:"^r.ArchimateConcept.AccessType^",^endif^
+				                       source:"^r.ArchimateConcept.Source.Id^",
+				                       target:"^r.ArchimateConcept.Target.Id^"\});
+				^endif^
+			}^
+		^endif^
+	^endif^
+	^if(c.Children)^
+		^expandEdges(c.Children)^		
+	^endif^
+}^
+>>
+
+js(element) ::= <<
+	// graph elements for ^element.Name^
+	var graphFor = "^element.Name^";
+	// ======================================================== -->
+	// Graph analysis:: setup the graph using the relationships -->
+	// ======================================================== -->
+	nodes= [];
+	edges= [];
+	^expandEdges(element.Children)^
+	graph = new Graph();
+	if (typeof friction !== "undefined") edges = friction(edges);
+	edges.forEach(function(e) {graph.addEdge(e.source,e.target,false,e.id);});
+>>
+
+
+
+

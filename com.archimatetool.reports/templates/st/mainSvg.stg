@@ -1,0 +1,6 @@
+delimiters "^", "^"
+
+import "modelreport.stg"
+import "frameSvg.stg"
+
+import "frameJS.stg"

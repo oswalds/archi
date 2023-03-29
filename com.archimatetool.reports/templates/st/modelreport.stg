@@ -5,7 +5,8 @@ expandFolder(folder, target) ::= <<
 	</li>}^
 	^folder.Elements:{e |
 		^if(e.Source)^
-			<li class="tree-element ^classesFromProperties(e)^"><a href="^model.Id^/^target^s/^e.Id^.html" target="^target^">
+			<li class="tree-element ^classesFromProperties(e)^"><a href="^model.Id^/^target^s/^e.Name;format="noWS"^.html" target="^target^">
+			<!-- <li class="tree-element ^classesFromProperties(e)^"><a href="^model.Id^/^target^s/^e.Id^.html" target="^target^"> -->
 				^if(e.Name.Empty)^
 					<span class="i18n-elementtype-^e.Class.SimpleName^"></span>
 				^else^
@@ -14,7 +15,8 @@ expandFolder(folder, target) ::= <<
 				(^e.Source.Name;format="xml-encode"^ - ^e.Target.Name;format="xml-encode"^) 
 			</a></li>
 		^else^
-			<li class="tree-element ^classesFromProperties(e)^"><a href="^model.Id^/^target^s/^e.Id^.html" target="^target^"> ^e.Name;format="xml-encode"^ </a></li>
+			<li class="tree-element ^classesFromProperties(e)^"><a href="^model.Id^/^target^s/^e.Name;format="noWS"^.html" target="^target^"> ^e.Name;format="xml-encode"^ </a></li>
+			<!-- <li class="tree-element ^classesFromProperties(e)^"><a href="^model.Id^/^target^s/^e.Id^.html" target="^target^"> ^e.Name;format="xml-encode"^ </a></li> -->
 		^endif^
 	}^
 </ul>
@@ -48,6 +50,10 @@ modelreport(model, strategyFolder, businessFolder, applicationFolder, technology
 	<link type="text/css" rel="stylesheet" href="css/i18n.css">
 	<script type="text/javascript" src="js/model.js"></script>
 	<script type="text/javascript" src="js/url-polyfill.min.js"></script>
+
+	<!-- SO image for the browser to display -->
+	<link type="image/png" rel="ea icon" href="ea_icon.png">
+
 </head>
 
 <body>

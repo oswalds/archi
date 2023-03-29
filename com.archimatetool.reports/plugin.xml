@@ -5,7 +5,7 @@
          point="org.eclipse.ui.menus">
       <menuContribution
             allPopups="false"
-            locationURI="menu:report_menu?after=report_ext">
+            locationURI="menu:tools">
          <command
                commandId="com.archimatetool.reports.command.HTML"
                id="com.archimatetool.reports.menuItem.HTML"
@@ -13,6 +13,18 @@
                style="push">
          </command>
       </menuContribution>
+      <!-- <svgHtml> 
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:tools">
+         <command
+               commandId="com.archimatetool.reports.command.HTMLsvg"
+               id="com.archimatetool.reports.menuItem.HTMLsvg"
+               label="%command.label.svg"
+               style="push">
+         </command>
+      </menuContribution>
+          </svgHtml> -->
       <menuContribution
             allPopups="false"
             locationURI="menu:tools">
@@ -40,6 +52,14 @@
    </extension>
    <extension
          point="org.eclipse.ui.commands">
+      <!-- <svgHtml> 
+      <command
+            categoryId="com.archimatetool.editor.category"
+            description="%command.label.svg"
+            id="com.archimatetool.reports.command.HTMLsvg"
+            name="%action.label.svg">
+      </command>
+           </svgHtml> -->
       <command
             categoryId="com.archimatetool.editor.category"
             description="%command.label"
@@ -55,6 +75,17 @@
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
+      <!-- <svgHtml> 
+      <handler
+            class="com.archimatetool.reports.html.HTMLReportHandler"
+            commandId="com.archimatetool.reports.command.HTMLsvg">
+         <enabledWhen>
+            <reference
+                  definitionId="com.archimatetool.modelEnabled">
+            </reference>
+         </enabledWhen>
+      </handler>
+           </svgHtml> -->
       <handler
             class="com.archimatetool.reports.html.HTMLReportHandler"
             commandId="com.archimatetool.reports.command.HTML">

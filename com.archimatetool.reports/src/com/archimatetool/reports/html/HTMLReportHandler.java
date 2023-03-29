@@ -33,6 +33,12 @@ public class HTMLReportHandler extends AbstractHandler {
         if(model != null) {
             try {
                 HTMLReportExporter exporter = new HTMLReportExporter(model);
+                // SO <svgImage>
+                // the command name is set in the plugin.properties:
+                // command.label.svg - what is displayed on the menu
+                // action.label.svg - but this is the name
+                exporter.exportAsSVG(event.getCommand().getName().equals("HTMLsvg"));
+                // SO </svgImage>
                 exporter.export();
             }
             catch(Exception ex) {
